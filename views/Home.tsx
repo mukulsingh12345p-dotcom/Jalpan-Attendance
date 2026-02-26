@@ -246,8 +246,13 @@ export const Home: React.FC<HomeProps> = ({
         .map((r, i) => r.matchedSewadarId ? i : -1)
         .filter(i => i !== -1);
       setSelectedResults(new Set(validIndices));
-    } catch (err) {
-      alert("Failed to parse chat log for " + currentDate + ". Please check if messages for this date exist in the log.");
+    } catch (err: any) {
+      if (err.message === 'API_KEY_MISSING') {
+        alert("Gemini API Key is missing. If you are using a custom deployment (like Vercel), please ensure the GEMINI_API_KEY environment variable is set.");
+      } else {
+        alert("Failed to parse chat log for " + currentDate + ". This can happen if the file is too large, the internet is slow, or the selected date is not present in the chat log.");
+      }
+      console.error("AI Import Error:", err);
     } finally {
       setIsParsing(false);
     }

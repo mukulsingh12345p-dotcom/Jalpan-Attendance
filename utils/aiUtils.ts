@@ -13,7 +13,17 @@ export interface ParsedAttendance {
 }
 
 export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], targetDate: string): Promise<ParsedAttendance[]> => {
-  const apiKey = (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : undefined) || '';
+  // Robust API key retrieval for both Node and Browser/Vite environments
+  const apiKey = (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : undefined) || 
+                 (import.meta as any).env?.VITE_GEMINI_API_KEY || 
+                 (import.meta as any).env?.VITE_API_KEY || 
+                 '';
+
+  if (!apiKey) {
+    console.error("Gemini API Key is missing. Please set GEMINI_API_KEY environment variable.");
+    throw new Error("API_KEY_MISSING");
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   
   // Calculate the window: We want to be inclusive. 
@@ -28,8 +38,9 @@ export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], tar
   // Provide the list of known names to help the AI map correctly
   const sewadarList = sewadars.map(s => `ID: ${s.id}, Name: ${s.name}`).join('\n');
 
-  // Take the LAST 60,000 characters of the chat log to ensure we get recent messages
-  const chatChunk = chatText.length > 60000 ? chatText.slice(-60000) : chatText;
+  // Increase chunk size to 150,000 characters to cover more days in the log
+  // WhatsApp logs can be large, but Gemini 3 Flash can handle this easily.
+  const chatChunk = chatText.length > 150000 ? chatText.slice(-150000) : chatText;
 
   const prompt = `
     You are an attendance assistant for "Jalpan Sewa". 
@@ -43,6 +54,7 @@ export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], tar
     - You MUST extract any "IN" (Entry) or "OUT" (Exit) messages that fall strictly within this time window.
     - Messages before ${windowStart} belong to the previous day -> IGNORE THEM.
     - Messages after ${windowEnd} belong to the next day -> IGNORE THEM.
+    - Be flexible with date formats in the transcript (e.g., 22/02/26, 02/22/26, [22/02/26...]).
     
     VOLUNTEER LIST:
     ${sewadarList}
