@@ -173,13 +173,13 @@ export default function App() {
       <div className="w-full max-w-lg bg-white sm:shadow-2xl sm:my-4 sm:rounded-[2.5rem] overflow-hidden h-[100dvh] sm:h-[840px] flex flex-col relative border-x border-gray-100">
         
         {/* Fixed Header */}
-        <header className="bg-white text-gray-900 px-6 py-5 flex justify-between items-center border-b border-gray-100 shadow-sm z-30 shrink-0">
+        <header className="bg-brand-600 text-white px-6 py-5 flex justify-between items-center shadow-md z-30 shrink-0">
            <div className="flex items-center gap-3">
-             <div className="w-9 h-9 bg-brand-50 rounded-xl flex items-center justify-center text-brand-600 font-extrabold text-xl shadow-sm border border-brand-100">JS</div>
+             <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center text-brand-600 font-extrabold text-xl shadow-inner">JS</div>
              <span className="font-bold text-2xl tracking-tight">JalpanSewa</span>
            </div>
-           <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-500" /> : <><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div><span>Live Sync</span></>}
+           <div className="flex items-center gap-2 bg-brand-700/50 px-3 py-1.5 rounded-full border border-brand-500/30 text-xs font-semibold backdrop-blur-sm">
+             {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div><span>Live Sync</span></>}
            </div>
         </header>
 
@@ -233,7 +233,7 @@ const NavTab = ({ active, onClick, icon, label }: { active: boolean, onClick: ()
     onClick={onClick}
     className={`flex items-center gap-2.5 px-6 py-3.5 rounded-2xl transition-all duration-300 font-bold text-sm select-none ${
       active 
-        ? 'bg-brand-50 text-brand-600 ring-1 ring-brand-100 shadow-sm translate-y-[-2px]' 
+        ? 'bg-brand-600 text-white shadow-lg shadow-brand-200 translate-y-[-2px]' 
         : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600 active:scale-95'
     }`}
   >
