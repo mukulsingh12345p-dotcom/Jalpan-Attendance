@@ -147,13 +147,13 @@ export const History: React.FC<HistoryProps> = ({ allRecords, onDeleteDate }) =>
        )}
 
        {/* Report Preview */}
-       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col transition-all duration-500">
-         <div className="bg-brand-600 p-5 text-center text-white relative overflow-hidden shrink-0">
-           <div className="absolute top-0 right-0 p-4 opacity-10 transform translate-x-4 -translate-y-4">
+       <div className="bg-white rounded-3xl border border-gray-100 shadow-xl shadow-gray-200/50 overflow-hidden flex flex-col transition-all duration-500">
+         <div className="bg-gray-50 p-6 text-center text-gray-900 relative overflow-hidden shrink-0 border-b border-gray-100">
+           <div className="absolute top-0 right-0 p-4 opacity-5 transform translate-x-4 -translate-y-4">
              <FileText size={120} />
            </div>
-           <h3 className="font-bold tracking-widest uppercase mb-1 text-[10px] opacity-70">Jalpan Sewa Record</h3>
-           <p className="text-xl font-black">{displayDate}</p>
+           <h3 className="font-bold tracking-widest uppercase mb-1 text-[10px] text-gray-400">Jalpan Sewa Record</h3>
+           <p className="text-2xl font-black text-brand-600">{displayDate}</p>
          </div>
          
          <div className="p-0 relative">

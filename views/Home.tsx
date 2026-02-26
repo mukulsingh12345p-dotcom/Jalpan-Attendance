@@ -460,16 +460,16 @@ export const Home: React.FC<HomeProps> = ({
         </div>
       </div>
 
-      <div className="bg-brand-600 rounded-3xl p-6 text-white shadow-xl shadow-brand-200 mb-8 relative overflow-hidden transition-all duration-500 hover:shadow-brand-300">
-        <div className="absolute -right-4 -bottom-8 opacity-20">
+      <div className="bg-white rounded-3xl p-6 text-gray-900 border border-gray-100 shadow-xl shadow-gray-200/50 mb-8 relative overflow-hidden transition-all duration-500 hover:shadow-gray-300/50">
+        <div className="absolute -right-4 -bottom-8 opacity-5">
           <svg width="150" height="150" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 0L61.8 38.2L100 50L61.8 61.8L50 100L38.2 61.8L0 50L38.2 38.2L50 0Z" fill="white"/>
+            <path d="M50 0L61.8 38.2L100 50L61.8 61.8L50 100L38.2 61.8L0 50L38.2 38.2L50 0Z" fill="currentColor"/>
           </svg>
         </div>
-        <p className="text-brand-100 text-sm font-medium mb-1">Active Sewadars</p>
+        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Active Sewadars</p>
         <div className="flex items-baseline gap-2">
-          <span className="text-5xl font-bold">{activeCount}</span>
-          <span className="text-brand-200">/ {allSewadars.length} total team</span>
+          <span className="text-5xl font-black text-brand-600">{activeCount}</span>
+          <span className="text-gray-400 font-bold text-sm">/ {allSewadars.length} total team</span>
         </div>
       </div>
 
