@@ -13,21 +13,23 @@ export interface ParsedAttendance {
 }
 
 export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], targetDate: string): Promise<ParsedAttendance[]> => {
-  const apiKey = (typeof process !== 'undefined' ? process.env.API_KEY : undefined) || '';
-  // Use the correct initialization for GoogleGenAI
-  const { GoogleGenAI } = await import("@google/genai");
+  const apiKey = (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : undefined) || '';
   const ai = new GoogleGenAI({ apiKey });
   
-  // Calculate the custom "Attendance Day" window (10 AM to 10 AM next day)
+  // Calculate the window: We want to be inclusive. 
+  // Most sewa starts early morning. Let's use 4:00 AM to 4:00 AM next day.
   const startDateObj = new Date(targetDate);
   const nextDateObj = addDays(startDateObj, 1);
   const nextDateStr = format(nextDateObj, 'yyyy-MM-dd');
   
-  const windowStart = `${targetDate} 10:00 AM`;
-  const windowEnd = `${nextDateStr} 10:00 AM`;
+  const windowStart = `${targetDate} 04:00 AM`;
+  const windowEnd = `${nextDateStr} 04:00 AM`;
 
   // Provide the list of known names to help the AI map correctly
   const sewadarList = sewadars.map(s => `ID: ${s.id}, Name: ${s.name}`).join('\n');
+
+  // Take the LAST 60,000 characters of the chat log to ensure we get recent messages
+  const chatChunk = chatText.length > 60000 ? chatText.slice(-60000) : chatText;
 
   const prompt = `
     You are an attendance assistant for "Jalpan Sewa". 
@@ -45,8 +47,8 @@ export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], tar
     VOLUNTEER LIST:
     ${sewadarList}
     
-    TRANSCRIPT:
-    ${chatText.slice(0, 30000)}
+    TRANSCRIPT (LAST PART OF LOG):
+    ${chatChunk}
 
     RULES FOR TIME EXTRACTION (CRITICAL):
     1. **ALWAYS USE THE TIMESTAMP**: You MUST extract the time from the timestamp at the beginning of the line (the "left side").
@@ -98,7 +100,10 @@ export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], tar
       }
     });
 
-    return JSON.parse(response.text || '[]');
+    const text = response.text || '[]';
+    // Clean up potential markdown code blocks if Gemini includes them despite responseMimeType
+    const jsonStr = text.replace(/```json\n?|```/g, '').trim();
+    return JSON.parse(jsonStr || '[]');
   } catch (error) {
     console.error("AI Parsing Error:", error);
     throw error;

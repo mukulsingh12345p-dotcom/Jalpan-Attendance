@@ -393,14 +393,28 @@ export const Home: React.FC<HomeProps> = ({
   );
 
   const displayDate = new Date(`${currentDate}T00:00:00`);
+  const isDateValid = !isNaN(displayDate.getTime());
 
   const formatTimeDisplay = (time24: string | undefined) => {
     if (!time24) return '';
-    const [h, m] = time24.split(':');
-    const date = new Date();
-    date.setHours(parseInt(h));
-    date.setMinutes(parseInt(m));
-    return format(date, 'h:mm a');
+    try {
+      const [h, m] = time24.split(':');
+      const date = new Date();
+      const hours = parseInt(h, 10);
+      const minutes = parseInt(m, 10);
+      
+      if (isNaN(hours) || isNaN(minutes)) return time24;
+      
+      date.setHours(hours);
+      date.setMinutes(minutes);
+      date.setSeconds(0);
+      date.setMilliseconds(0);
+      
+      if (isNaN(date.getTime())) return time24;
+      return format(date, 'h:mm a');
+    } catch (e) {
+      return time24;
+    }
   };
 
   const recordToMarkOut = todayRecords.find(r => r.id === markOutRecordId);
@@ -412,7 +426,7 @@ export const Home: React.FC<HomeProps> = ({
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Daily Overview</p>
           <div className="relative group cursor-pointer inline-block" onClick={handleDateClick}>
             <h2 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
-              {format(displayDate, 'MMM d')}
+              {isDateValid ? format(displayDate, 'MMM d') : 'Select Date'}
               <ChevronDown size={20} className="text-gray-400 group-hover:text-brand-600 transition-colors" />
             </h2>
             <div className="absolute -bottom-1 left-0 h-1.5 bg-brand-600 w-0 group-hover:w-full transition-all duration-300 rounded-full"></div>
@@ -461,13 +475,15 @@ export const Home: React.FC<HomeProps> = ({
 
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-bold text-gray-900">Activity Feed</h3>
-        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-md">{format(displayDate, 'EEEE')}</span>
+        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-md">
+          {isDateValid ? format(displayDate, 'EEEE') : ''}
+        </span>
       </div>
       
       <div className="space-y-4">
         {todayRecords.length === 0 ? (
            <div className="text-center py-10 text-gray-400 bg-white rounded-2xl border border-gray-100 border-dashed">
-            No entries for {format(displayDate, 'MMM d')} yet.
+            No entries for {isDateValid ? format(displayDate, 'MMM d') : 'this date'} yet.
           </div>
         ) : (
           [...todayRecords].reverse().map((record) => {
@@ -523,7 +539,7 @@ export const Home: React.FC<HomeProps> = ({
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">AI Chat Import</h3>
                   <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
-                    For {format(displayDate, 'MMM d, yyyy')}
+                    For {isDateValid ? format(displayDate, 'MMM d, yyyy') : 'Selected Date'}
                   </p>
                 </div>
               </div>
@@ -539,7 +555,7 @@ export const Home: React.FC<HomeProps> = ({
                 </div>
                 <h4 className="font-bold text-gray-900 mb-2">Upload WhatsApp Export</h4>
                 <p className="text-sm text-gray-500 mb-6 max-w-[240px]">
-                  AI will extract records ONLY for <span className="text-brand-600 font-bold">{format(displayDate, 'MMM d')}</span>.
+                  AI will extract records ONLY for <span className="text-brand-600 font-bold">{isDateValid ? format(displayDate, 'MMM d') : 'Selected Date'}</span>.
                 </p>
                 <input 
                   type="file" 
@@ -559,13 +575,13 @@ export const Home: React.FC<HomeProps> = ({
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
                 <p className="text-sm font-bold text-gray-600 animate-pulse text-center px-4">
-                  Gemini is filtering records for <br/>{format(displayDate, 'MMMM d')}...
+                  Gemini is filtering records for <br/>{isDateValid ? format(displayDate, 'MMMM d') : 'Selected Date'}...
                 </p>
               </div>
             ) : (
               <div className="flex flex-col flex-1 overflow-hidden">
                 <div className="flex-1 overflow-y-auto pr-2 space-y-3 mb-4">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Extracted Activities ({format(displayDate, 'MMM d')})</p>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Extracted Activities ({isDateValid ? format(displayDate, 'MMM d') : ''})</p>
                   {parsedResults.map((result, idx) => (
                     <div 
                       key={idx}

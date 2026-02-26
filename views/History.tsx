@@ -16,7 +16,15 @@ export const History: React.FC<HistoryProps> = ({ allRecords, onDeleteDate }) =>
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const filteredRecords = allRecords.filter(r => r.date === selectedDate);
-  const displayDate = selectedDate ? format(new Date(`${selectedDate}T00:00:00`), 'd MMMM yyyy') : 'Select Date';
+  
+  const getDisplayDate = () => {
+    if (!selectedDate) return 'Select Date';
+    const date = new Date(`${selectedDate}T00:00:00`);
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    return format(date, 'd MMMM yyyy');
+  };
+
+  const displayDate = getDisplayDate();
 
   const handleDelete = async () => {
     if (window.confirm(`Are you sure you want to DELETE ALL records for ${displayDate}? This action cannot be undone.`)) {
