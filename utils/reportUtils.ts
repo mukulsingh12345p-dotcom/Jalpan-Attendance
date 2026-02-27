@@ -15,7 +15,7 @@ const convertToAmPm = (time24: string) => {
 
 const calculateDuration = (dateStr: string, start: string, end?: string) => {
   if (!start) return '--';
-  if (!end) return 'Active';
+  if (!end) return '--';
   
   try {
     let startDate = new Date(`${dateStr}T${start}`);
@@ -82,15 +82,15 @@ export const generatePDF = (dateStr: string, records: AttendanceRecord[]) => {
   const sortedByEnd = [...records].filter(r => r.endTime).sort((a, b) => (b.endTime || '').localeCompare(a.endTime || ''));
   
   const dutyStartTime = sortedByStart.length > 0 ? convertToAmPm(sortedByStart[0].startTime) : '--';
-  const dutyEndTime = sortedByEnd.length > 0 ? convertToAmPm(sortedByEnd[0].endTime!) : (records.length > 0 ? 'Active' : '--');
+  const dutyEndTime = sortedByEnd.length > 0 ? convertToAmPm(sortedByEnd[0].endTime!) : (records.length > 0 ? '--' : '--');
 
   autoTable(doc, {
     startY: currentY,
     head: [['Metric', 'Details']],
     body: [
       ['Reporting Group', 'Jalpan Sewa Team'],
+      ['Location', 'Canteen, Jalpan Services, Kirpal Bagh'],
       ['Total Sewadars', totalSewadars.toString()],
-      ['Locations Covered', uniqueLocations.length > 3 ? `${uniqueLocations.length} Counters` : locationsStr],
       ['Duty Start', `${format(dateObj, 'dd/MM/yyyy')} ${dutyStartTime}`],
       ['Duty End', `${format(dateObj, 'dd/MM/yyyy')} ${dutyEndTime}`]
     ],
@@ -130,14 +130,13 @@ export const generatePDF = (dateStr: string, records: AttendanceRecord[]) => {
     (index + 1).toString(),
     r.sewadarName,
     convertToAmPm(r.startTime),
-    r.endTime ? convertToAmPm(r.endTime) : 'Active',
-    calculateDuration(dateStr, r.startTime, r.endTime),
-    r.counter
+    r.endTime ? convertToAmPm(r.endTime) : '--',
+    calculateDuration(dateStr, r.startTime, r.endTime)
   ]);
 
   autoTable(doc, {
     startY: currentY,
-    head: [['#', 'Name', 'In', 'Out', 'Dur', 'Spot']],
+    head: [['#', 'Name', 'In', 'Out', 'Dur']],
     body: logRows,
     theme: 'striped',
     headStyles: { fillColor: [40, 50, 100], textColor: 255 }
@@ -155,6 +154,7 @@ export const shareReport = async (dateStr: string, records: AttendanceRecord[]) 
   const counters = new Set(records.map(r => r.counter)).size;
 
   let text = `${title}\n\n`;
+  text += `📍 *Location*: Canteen, Jalpan Services, Kirpal Bagh\n`;
   text += `📊 *Summary*\n`;
   text += `• Total Sewadars: ${totalSewadars}\n`;
   text += `• Active Spots: ${counters}\n\n`;
@@ -166,7 +166,7 @@ export const shareReport = async (dateStr: string, records: AttendanceRecord[]) 
   } else {
     records.forEach(r => {
       const inTime = convertToAmPm(r.startTime);
-      const outTime = r.endTime ? convertToAmPm(r.endTime) : 'Active';
+      const outTime = r.endTime ? convertToAmPm(r.endTime) : '--';
       text += `• *${r.sewadarName}* (${r.counter})\n  Time: ${inTime} - ${outTime}\n`;
     });
   }

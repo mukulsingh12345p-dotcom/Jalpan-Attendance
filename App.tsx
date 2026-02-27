@@ -153,6 +153,18 @@ export default function App() {
     }
   };
 
+  const handleDeleteEntry = async (recordId: string) => {
+    if (!window.confirm('Are you sure you want to delete this attendance record?')) return;
+    try {
+      const { error } = await supabase.from('attendance_records').delete().eq('id', recordId);
+      if (error) throw error;
+      setRecords(prev => prev.filter(r => r.id !== recordId));
+    } catch (error: any) {
+      console.error('Delete Entry Error:', error);
+      alert(`Failed to delete entry: ${error.message || JSON.stringify(error)}`);
+    }
+  };
+
   const handleDeleteDate = async (date: string) => {
     try {
       const { error } = await supabase.from('attendance_records').delete().eq('date', date);
@@ -201,6 +213,7 @@ export default function App() {
                     allSewadars={sewadars} 
                     onAddEntry={handleAddEntry} 
                     onMarkOut={handleMarkOut}
+                    onDeleteEntry={handleDeleteEntry}
                   />
                 )}
                 {view === AppView.TEAM && (

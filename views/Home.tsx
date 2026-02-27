@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, Clock, MapPin, Search, Calendar, ChevronDown, LogOut, Sparkles, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, X, Clock, MapPin, Search, Calendar, ChevronDown, LogOut, Sparkles, FileText, Loader2, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { AttendanceRecord, Sewadar } from '../types';
 import { format } from 'date-fns';
 import { parseChatWithAI, ParsedAttendance } from '../utils/aiUtils';
@@ -10,6 +10,7 @@ interface HomeProps {
   allSewadars: Sewadar[];
   onAddEntry: (sewadarId: string, counter: string, startTime: string, endTime?: string) => Promise<void>;
   onMarkOut: (recordId: string, endTime: string) => Promise<void>;
+  onDeleteEntry: (recordId: string) => Promise<void>;
   currentDate: string;
   setCurrentDate: (date: string) => void;
 }
@@ -184,6 +185,7 @@ export const Home: React.FC<HomeProps> = ({
   allSewadars, 
   onAddEntry, 
   onMarkOut,
+  onDeleteEntry,
   currentDate, 
   setCurrentDate
 }) => {
@@ -509,22 +511,31 @@ export const Home: React.FC<HomeProps> = ({
                     <p className="text-[10px] text-gray-500 font-medium">{record.counter || 'General'}</p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-1.5">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-1 rounded-lg border border-brand-100 whitespace-nowrap">
-                    <Clock size={10} /> {formatTimeDisplay(record.startTime)}
-                  </div>
-                  {!record.endTime ? (
-                    <button 
-                      onClick={() => handleMarkOutClick(record.id)}
-                      className="text-[10px] bg-brand-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-brand-700 transition-colors"
-                    >
-                      Mark Out
-                    </button>
-                  ) : (
-                    <div className="text-[10px] text-gray-400 font-bold bg-gray-50 px-2 py-1 rounded border border-gray-100 whitespace-nowrap">
-                      Out: {formatTimeDisplay(record.endTime)}
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col items-end gap-1.5">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-brand-700 bg-brand-50 px-2 py-1 rounded-lg border border-brand-100 whitespace-nowrap">
+                      <Clock size={10} /> {formatTimeDisplay(record.startTime)}
                     </div>
-                  )}
+                    {!record.endTime ? (
+                      <button 
+                        onClick={() => handleMarkOutClick(record.id)}
+                        className="text-[10px] bg-brand-600 text-white px-2.5 py-1 rounded-lg font-bold hover:bg-brand-700 transition-colors"
+                      >
+                        Mark Out
+                      </button>
+                    ) : (
+                      <div className="text-[10px] text-gray-400 font-bold bg-gray-50 px-2 py-1 rounded border border-gray-100 whitespace-nowrap">
+                        Out: {formatTimeDisplay(record.endTime)}
+                      </div>
+                    )}
+                  </div>
+                  <button 
+                    onClick={() => onDeleteEntry(record.id)}
+                    className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                    title="Delete Entry"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             );
