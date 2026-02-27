@@ -67,6 +67,13 @@ export default function App() {
   }, []);
 
   const handleAddMember = async (name: string) => {
+    // Check for duplicate name
+    const normalizedName = name.trim().toLowerCase();
+    if (sewadars.some(s => s.name.toLowerCase() === normalizedName)) {
+      alert('This sewadar is already existed in the team list.');
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('sewadars')
@@ -112,6 +119,13 @@ export default function App() {
   };
 
   const handleAddEntry = async (sewadarId: string, counter: string, startTime: string, endTime?: string) => {
+    // Check for duplicate attendance for today
+    const alreadyMarked = records.some(r => r.date === currentDate && r.sewadarId === sewadarId);
+    if (alreadyMarked) {
+      alert('This person is already existed in today\'s attendance.');
+      return;
+    }
+
     const sewadar = sewadars.find(s => s.id === sewadarId);
     if (!sewadar) return;
     const newRecordPayload = {
