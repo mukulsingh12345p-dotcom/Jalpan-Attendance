@@ -213,12 +213,13 @@ export const Home: React.FC<HomeProps> = ({
   const activeCount = todayRecords.filter(r => !r.endTime).length;
 
   const handleConfirmEntry = () => {
-    if (selectedSewadarId && selectedCounter) {
+    if (selectedSewadarId) {
       const formattedInTime = convertTo24Hour(inTime.hour, inTime.minute, inTime.period);
       const formattedOutTime = hasOutTime 
         ? convertTo24Hour(outTime.hour, outTime.minute, outTime.period) 
         : undefined;
-      onAddEntry(selectedSewadarId, selectedCounter, formattedInTime, formattedOutTime);
+      // Pass empty string if no counter selected, backend/UI handles it
+      onAddEntry(selectedSewadarId, selectedCounter || '', formattedInTime, formattedOutTime);
       setShowModal(false);
       setSelectedSewadarId('');
       setSelectedCounter('');
@@ -248,7 +249,7 @@ export const Home: React.FC<HomeProps> = ({
       setSelectedResults(new Set(validIndices));
     } catch (err: any) {
       if (err.message === 'API_KEY_MISSING') {
-        alert("Gemini API Key is missing. If you are using a custom deployment (like Vercel), please ensure the GEMINI_API_KEY environment variable is set.");
+        alert("Gemini API Key is missing. In Vercel, you MUST name the variable 'VITE_GEMINI_API_KEY' (with the VITE_ prefix) for it to work in the browser. Please update your Vercel settings and redeploy.");
       } else {
         alert("Failed to parse chat log for " + currentDate + ". This can happen if the file is too large, the internet is slow, or the selected date is not present in the chat log.");
       }
@@ -505,7 +506,7 @@ export const Home: React.FC<HomeProps> = ({
                   </div>
                   <div>
                     <h4 className="font-bold text-gray-900 leading-tight">{record.sewadarName}</h4>
-                    <p className="text-[10px] text-gray-500 font-medium">{record.counter}</p>
+                    <p className="text-[10px] text-gray-500 font-medium">{record.counter || 'General'}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
@@ -708,7 +709,7 @@ export const Home: React.FC<HomeProps> = ({
                 )}
               </div>
               <div className="mb-4 relative">
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Location</label>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Location (Optional)</label>
                 <div className="relative">
                   <input 
                     type="text"
@@ -762,7 +763,7 @@ export const Home: React.FC<HomeProps> = ({
                 </div>
               )}
               <button 
-                disabled={!selectedSewadarId || !selectedCounter}
+                disabled={!selectedSewadarId}
                 onClick={handleConfirmEntry}
                 className="w-full bg-brand-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-4"
               >

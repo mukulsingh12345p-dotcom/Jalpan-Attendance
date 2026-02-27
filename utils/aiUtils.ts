@@ -20,7 +20,7 @@ export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], tar
                  '';
 
   if (!apiKey) {
-    console.error("Gemini API Key is missing. Please set GEMINI_API_KEY environment variable.");
+    console.error("Gemini API Key is missing. For Vite/Vercel deployments, ensure you set 'VITE_GEMINI_API_KEY' in your environment variables.");
     throw new Error("API_KEY_MISSING");
   }
 
