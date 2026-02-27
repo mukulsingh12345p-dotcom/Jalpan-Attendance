@@ -106,20 +106,20 @@ export const generatePDF = (dateStr: string, records: AttendanceRecord[]) => {
   doc.text("2. Sewa Point Deployment", 14, currentY);
   currentY += 5;
 
-  const counterStats: Record<string, number> = {};
-  records.forEach(r => { counterStats[r.counter] = (counterStats[r.counter] || 0) + 1; });
-  const counterRows = Object.entries(counterStats).map(([cnt, count]) => [cnt, count.toString()]);
-
+  // Aggregate all into one location row as requested
   autoTable(doc, {
     startY: currentY,
     head: [['Sewa Point / Spot', 'Manpower Count']],
-    body: counterRows,
+    body: [
+      ['Canteen, Jalpan Services, Kirpal Bagh', records.length.toString()]
+    ],
     theme: 'grid',
     headStyles: { fillColor: [16, 185, 129], textColor: 255 }
   });
 
-  doc.addPage();
-  currentY = 20;
+  // Continue on the same page (no page break)
+  const lastTableY2 = (doc as any).lastAutoTable?.finalY || currentY;
+  currentY = lastTableY2 + 15;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
