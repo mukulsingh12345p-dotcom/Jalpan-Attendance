@@ -204,6 +204,7 @@ export const Home: React.FC<HomeProps> = ({
   const [selectedCounter, setSelectedCounter] = useState('');
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [sewadarSearch, setSewadarSearch] = useState('');
+  const [feedSearch, setFeedSearch] = useState('');
   const [inTime, setInTime] = useState({ hour: '09', minute: '00', period: 'AM' });
   const [outTime, setOutTime] = useState({ hour: '05', minute: '00', period: 'PM' });
   const [hasOutTime, setHasOutTime] = useState(false);
@@ -300,35 +301,58 @@ export const Home: React.FC<HomeProps> = ({
   const confirmAIImport = async () => {
     setIsParsing(true); // Reuse parsing state for loading indicator
     try {
-      // Group selected results by sewadar ID to handle IN/OUT pairs
+      // Group selected results by sewadar ID
       const selectedItems = Array.from(selectedResults).map(index => parsedResults[index]);
-      const sewadarMap = new Map<string, { in?: ParsedAttendance, out?: ParsedAttendance }>();
+      
+      // Sort items by time to process chronologically
+      selectedItems.sort((a, b) => a.time.localeCompare(b.time));
 
+      const sewadarSessions = new Map<string, { in?: ParsedAttendance, out?: ParsedAttendance }[]>();
+
+      // Group into sessions
       selectedItems.forEach(item => {
         if (item.matchedSewadarId) {
-          const current = sewadarMap.get(item.matchedSewadarId) || {};
+          const sessions = sewadarSessions.get(item.matchedSewadarId) || [];
+          
           if (item.type === 'IN') {
-            if (!current.in) current.in = item; 
+            // Start a new session
+            sessions.push({ in: item });
           } else if (item.type === 'OUT') {
-            current.out = item;
+            // Find the last session without an OUT
+            const lastSession = sessions[sessions.length - 1];
+            if (lastSession && !lastSession.out) {
+              lastSession.out = item;
+            } else {
+              // Orphaned OUT (or previous IN was not selected/found)
+              sessions.push({ out: item });
+            }
           }
-          sewadarMap.set(item.matchedSewadarId, current);
+          sewadarSessions.set(item.matchedSewadarId, sessions);
         }
       });
 
-      // Process sequentially to avoid race conditions
-      for (const [sewadarId, records] of sewadarMap) {
-        if (records.in) {
-          await onAddEntry(
-            sewadarId, 
-            records.in.counter || 'General', 
-            sanitizeTime(records.in.time), 
-            records.out ? sanitizeTime(records.out.time) : undefined
-          );
-        } else if (records.out) {
-          const activeRecord = todayRecords.find(r => r.sewadarId === sewadarId && !r.endTime);
-          if (activeRecord) {
-            await onMarkOut(activeRecord.id, sanitizeTime(records.out.time));
+      // Process sequentially
+      for (const [sewadarId, sessions] of sewadarSessions) {
+        for (const session of sessions) {
+          if (session.in) {
+            await onAddEntry(
+              sewadarId, 
+              session.in.counter || 'General', 
+              sanitizeTime(session.in.time), 
+              session.out ? sanitizeTime(session.out.time) : undefined
+            );
+          } else if (session.out) {
+            // Try to find an existing active record in todayRecords to close
+            // Note: This might be ambiguous if there are multiple active records, 
+            // but usually there's only one active at a time per person.
+            // We'll find the *latest* active record.
+            const activeRecords = todayRecords.filter(r => r.sewadarId === sewadarId && !r.endTime);
+            // Sort by start time descending to get the latest
+            activeRecords.sort((a, b) => b.startTime.localeCompare(a.startTime));
+            
+            if (activeRecords.length > 0) {
+              await onMarkOut(activeRecords[0].id, sanitizeTime(session.out.time));
+            }
           }
         }
       }
@@ -477,7 +501,7 @@ export const Home: React.FC<HomeProps> = ({
         <p className="text-brand-100 text-sm font-medium mb-1">Active Sewadars</p>
         <div className="flex items-baseline gap-2">
           <span className="text-5xl font-bold">{activeCount}</span>
-          <span className="text-brand-200">/ {allSewadars.length} total team</span>
+          <span className="text-brand-200">/ {allSewadars.length} total sewadars</span>
         </div>
       </div>
 
@@ -487,6 +511,17 @@ export const Home: React.FC<HomeProps> = ({
           {isDateValid ? format(displayDate, 'EEEE') : ''}
         </span>
       </div>
+
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-3 text-gray-400" size={16} />
+        <input 
+          type="text"
+          className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 placeholder-gray-400"
+          placeholder="Search marked sewadars..."
+          value={feedSearch}
+          onChange={(e) => setFeedSearch(e.target.value)}
+        />
+      </div>
       
       <div className="space-y-4">
         {todayRecords.length === 0 ? (
@@ -494,7 +529,10 @@ export const Home: React.FC<HomeProps> = ({
             No entries for {isDateValid ? format(displayDate, 'MMM d') : 'this date'} yet.
           </div>
         ) : (
-          [...todayRecords].reverse().map((record) => {
+          [...todayRecords]
+            .reverse()
+            .filter(record => record.sewadarName.toLowerCase().includes(feedSearch.toLowerCase()))
+            .map((record) => {
             const sewadar = allSewadars.find(s => s.id === record.sewadarId);
             return (
               <div key={record.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">

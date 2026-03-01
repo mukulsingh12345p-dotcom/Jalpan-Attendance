@@ -55,6 +55,7 @@ export const parseChatWithAI = async (chatText: string, sewadars: Sewadar[], tar
     - Messages before ${windowStart} belong to the previous day -> IGNORE THEM.
     - Messages after ${windowEnd} belong to the next day -> IGNORE THEM.
     - Be flexible with date formats in the transcript (e.g., 22/02/26, 02/22/26, [22/02/26...]).
+    - **MULTIPLE ENTRIES**: If a person marks attendance multiple times (e.g., IN at 10:00, OUT at 12:00, IN at 14:00, OUT at 16:00), you MUST return ALL occurrences as separate objects. Do NOT merge them.
     
     VOLUNTEER LIST:
     ${sewadarList}
